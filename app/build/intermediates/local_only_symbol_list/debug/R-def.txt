@@ -40,7 +40,6 @@ id translationLabel
 id transliterationLabel
 layout activity_main
 string app_name
-string cd_audio_unavailable
 string cd_dua_picker
 string cd_next
 string cd_pause
@@ -58,10 +57,12 @@ string playback_error
 string playback_finished
 string playback_idle
 string playback_loading
-string playback_no_audio
 string playback_paused
 string playback_playing
 string playback_ready
+string playback_tts_error
+string playback_tts_loading
+string playback_tts_ready
 string section_count_format
 string source_format
 string time_zero

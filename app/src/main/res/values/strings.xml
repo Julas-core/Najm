@@ -12,11 +12,13 @@
     <string name="playback_idle">Select a dua to begin.</string>
     <string name="playback_loading">Loading audio...</string>
     <string name="playback_ready">Ready to play.</string>
+    <string name="playback_tts_loading">Preparing text-to-speech audio...</string>
+    <string name="playback_tts_ready">Text-to-speech audio ready.</string>
     <string name="playback_playing">Playing.</string>
     <string name="playback_paused">Paused.</string>
     <string name="playback_finished">Finished.</string>
     <string name="playback_error">Audio could not be loaded. Tap play to retry.</string>
-    <string name="playback_no_audio">Text-only dua. Audio has not been added yet.</string>
+    <string name="playback_tts_error">Text-to-speech audio is unavailable on this device.</string>
 
     <string name="cd_section_picker">Choose a dua section</string>
     <string name="cd_dua_picker">Choose a dua</string>
@@ -26,7 +28,6 @@
     <string name="cd_play">Play dua</string>
     <string name="cd_pause">Pause dua</string>
     <string name="cd_retry">Retry loading audio</string>
-    <string name="cd_audio_unavailable">Audio unavailable for this dua</string>
     <string name="cd_next">Next dua</string>
     <string name="cd_repeat_on">Repeat is on</string>
     <string name="cd_repeat_off">Repeat is off</string>

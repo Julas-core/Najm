@@ -12,6 +12,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -26,15 +28,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var duaAdapter: ArrayAdapter<String>
 
     private var mediaPlayer: MediaPlayer? = null
+    private var textToSpeech: TextToSpeech? = null
     private var audioFocusRequest: AudioFocusRequest? = null
     private var visibleDuas: List<Dua> = emptyList()
+    private var selectedDua: Dua? = null
     private var selectedSectionIndex = -1
     private var selectedIndex = -1
+    private var audioMode = AudioMode.None
     private var playbackState = PlaybackState.Idle
     private var repeatEnabled = false
     private var playWhenPrepared = false
     private var userIsSeeking = false
     private var noisyReceiverRegistered = false
+    private var ttsReady = false
+    private var ttsUsesArabic = true
+    private var currentUtteranceId: String? = null
 
     private val progressHandler = Handler(Looper.getMainLooper())
     private val progressRunnable = object : Runnable {
@@ -66,6 +74,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val utteranceListener = object : UtteranceProgressListener() {
+        override fun onStart(utteranceId: String?) = Unit
+
+        override fun onDone(utteranceId: String?) {
+            if (utteranceId != currentUtteranceId) return
+            runOnUiThread {
+                currentUtteranceId = null
+                handleCompletion()
+            }
+        }
+
+        @Deprecated("Deprecated in Java")
+        override fun onError(utteranceId: String?) {
+            if (utteranceId != currentUtteranceId) return
+            runOnUiThread {
+                currentUtteranceId = null
+                stopProgressUpdates()
+                abandonAudioFocus()
+                setPlaybackState(PlaybackState.Error)
+            }
+        }
+
+        override fun onStop(utteranceId: String?, interrupted: Boolean) {
+            if (utteranceId == currentUtteranceId) {
+                currentUtteranceId = null
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -73,10 +110,43 @@ class MainActivity : AppCompatActivity() {
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
+        setupTextToSpeech()
         setupPickers()
         setupControls()
         registerNoisyReceiver()
         selectSection(0)
+    }
+
+    private fun setupTextToSpeech() {
+        textToSpeech = TextToSpeech(this) { status ->
+            val engine = textToSpeech ?: return@TextToSpeech
+
+            if (status == TextToSpeech.SUCCESS) {
+                val arabicSupport = engine.setLanguage(Locale("ar"))
+                ttsUsesArabic = arabicSupport != TextToSpeech.LANG_MISSING_DATA &&
+                    arabicSupport != TextToSpeech.LANG_NOT_SUPPORTED
+
+                if (!ttsUsesArabic) {
+                    engine.setLanguage(Locale.US)
+                }
+
+                engine.setOnUtteranceProgressListener(utteranceListener)
+                ttsReady = true
+
+                if (audioMode == AudioMode.TextToSpeech && playbackState == PlaybackState.Loading) {
+                    setPlaybackState(PlaybackState.Ready)
+                    if (playWhenPrepared) {
+                        playWhenPrepared = false
+                        playAudio()
+                    }
+                }
+            } else {
+                ttsReady = false
+                if (audioMode == AudioMode.TextToSpeech) {
+                    setPlaybackState(PlaybackState.Error)
+                }
+            }
+        }
     }
 
     private fun setupPickers() {
@@ -124,8 +194,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnPlayPause.setOnClickListener {
             when (playbackState) {
                 PlaybackState.Playing -> pauseAudio()
-                PlaybackState.Loading,
-                PlaybackState.NoAudio -> Unit
+                PlaybackState.Loading -> Unit
                 PlaybackState.Error -> selectDua(selectedIndex.coerceAtLeast(0))
                 else -> playAudio()
             }
@@ -193,6 +262,7 @@ class MainActivity : AppCompatActivity() {
 
         selectedIndex = index
         val dua = visibleDuas[index]
+        selectedDua = dua
 
         if (binding.duaPicker.selectedItemPosition != index) {
             binding.duaPicker.setSelection(index)
@@ -215,11 +285,22 @@ class MainActivity : AppCompatActivity() {
     private fun preparePlayer(dua: Dua) {
         val audioUrl = dua.audioUrl
         if (audioUrl.isNullOrBlank()) {
-            playWhenPrepared = false
-            setPlaybackState(PlaybackState.NoAudio)
+            audioMode = AudioMode.TextToSpeech
+            binding.progressSeekBar.isEnabled = false
+
+            if (ttsReady) {
+                setPlaybackState(PlaybackState.Ready)
+                if (playWhenPrepared) {
+                    playWhenPrepared = false
+                    playAudio()
+                }
+            } else {
+                setPlaybackState(PlaybackState.Loading)
+            }
             return
         }
 
+        audioMode = AudioMode.Stream
         setPlaybackState(PlaybackState.Loading)
 
         try {
@@ -261,6 +342,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playAudio() {
+        if (audioMode == AudioMode.TextToSpeech) {
+            speakSelectedDua()
+            return
+        }
+
         val player = mediaPlayer ?: return
         if (playbackState == PlaybackState.Loading || !requestAudioFocus()) return
 
@@ -276,7 +362,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun speakSelectedDua() {
+        val engine = textToSpeech ?: return
+        val dua = selectedDua ?: return
+
+        if (!ttsReady) {
+            playWhenPrepared = true
+            setPlaybackState(PlaybackState.Loading)
+            return
+        }
+
+        if (!requestAudioFocus()) return
+
+        val utteranceId = "dua-$selectedSectionIndex-$selectedIndex-${System.nanoTime()}"
+        currentUtteranceId = utteranceId
+        val spokenText = if (ttsUsesArabic) dua.arabic else dua.transliteration
+        val result = engine.speak(spokenText, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+
+        if (result == TextToSpeech.ERROR) {
+            currentUtteranceId = null
+            abandonAudioFocus()
+            setPlaybackState(PlaybackState.Error)
+        } else {
+            setPlaybackState(PlaybackState.Playing)
+        }
+    }
+
     private fun pauseAudio() {
+        if (audioMode == AudioMode.TextToSpeech) {
+            stopTextToSpeech()
+            setPlaybackState(PlaybackState.Paused)
+            abandonAudioFocus()
+            return
+        }
+
         val player = mediaPlayer ?: return
         if (playbackState != PlaybackState.Playing) return
 
@@ -291,6 +410,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun restartAudio() {
+        if (audioMode == AudioMode.TextToSpeech) {
+            stopTextToSpeech()
+            playAudio()
+            return
+        }
+
         val player = mediaPlayer ?: return
         try {
             player.seekTo(0)
@@ -380,15 +505,16 @@ class MainActivity : AppCompatActivity() {
         playbackState = state
 
         val canUseAudio = state != PlaybackState.Loading &&
-            state != PlaybackState.Error &&
-            state != PlaybackState.NoAudio
+            state != PlaybackState.Error
+        val canSeekAudio = canUseAudio && audioMode == AudioMode.Stream
 
         binding.loadingIndicator.visibility = if (state == PlaybackState.Loading) View.VISIBLE else View.GONE
-        binding.btnPlayPause.isEnabled = state != PlaybackState.Loading && state != PlaybackState.NoAudio
+        binding.btnPlayPause.isEnabled = state != PlaybackState.Loading
         binding.btnRestart.isEnabled = canUseAudio
         binding.btnRepeat.isEnabled = canUseAudio
-        binding.progressSeekBar.isEnabled = canUseAudio
-        binding.btnPlayPause.alpha = if (state == PlaybackState.NoAudio) DISABLED_ALPHA else FULL_ALPHA
+        binding.progressSeekBar.isEnabled = canSeekAudio
+        binding.progressSeekBar.alpha = if (canSeekAudio) FULL_ALPHA else DISABLED_ALPHA
+        binding.btnPlayPause.alpha = FULL_ALPHA
         binding.btnRestart.alpha = if (canUseAudio) FULL_ALPHA else DISABLED_ALPHA
         binding.btnRepeat.alpha = if (repeatEnabled && canUseAudio) FULL_ALPHA else DISABLED_ALPHA
 
@@ -402,25 +528,35 @@ class MainActivity : AppCompatActivity() {
 
         binding.statusText.text = when (state) {
             PlaybackState.Idle -> getString(R.string.playback_idle)
-            PlaybackState.Loading -> getString(R.string.playback_loading)
-            PlaybackState.Ready -> getString(R.string.playback_ready)
+            PlaybackState.Loading -> if (audioMode == AudioMode.TextToSpeech) {
+                getString(R.string.playback_tts_loading)
+            } else {
+                getString(R.string.playback_loading)
+            }
+            PlaybackState.Ready -> if (audioMode == AudioMode.TextToSpeech) {
+                getString(R.string.playback_tts_ready)
+            } else {
+                getString(R.string.playback_ready)
+            }
             PlaybackState.Playing -> getString(R.string.playback_playing)
             PlaybackState.Paused -> getString(R.string.playback_paused)
             PlaybackState.Completed -> getString(R.string.playback_finished)
-            PlaybackState.Error -> getString(R.string.playback_error)
-            PlaybackState.NoAudio -> getString(R.string.playback_no_audio)
+            PlaybackState.Error -> if (audioMode == AudioMode.TextToSpeech) {
+                getString(R.string.playback_tts_error)
+            } else {
+                getString(R.string.playback_error)
+            }
         }
 
         binding.btnPlayPause.contentDescription = when (state) {
             PlaybackState.Playing -> getString(R.string.cd_pause)
             PlaybackState.Error -> getString(R.string.cd_retry)
-            PlaybackState.NoAudio -> getString(R.string.cd_audio_unavailable)
             else -> getString(R.string.cd_play)
         }
     }
 
     private fun updateRepeatUI() {
-        val audioAvailable = playbackState != PlaybackState.NoAudio && playbackState != PlaybackState.Error
+        val audioAvailable = playbackState != PlaybackState.Error
         binding.btnRepeat.alpha = if (repeatEnabled && audioAvailable) FULL_ALPHA else DISABLED_ALPHA
         binding.btnRepeat.contentDescription = if (repeatEnabled) {
             getString(R.string.cd_repeat_on)
@@ -453,7 +589,14 @@ class MainActivity : AppCompatActivity() {
     private fun releasePlayer() {
         mediaPlayer?.release()
         mediaPlayer = null
+        stopTextToSpeech()
+        audioMode = AudioMode.None
         abandonAudioFocus()
+    }
+
+    private fun stopTextToSpeech() {
+        currentUtteranceId = null
+        textToSpeech?.stop()
     }
 
     private fun formatDuration(milliseconds: Int): String {
@@ -474,7 +617,15 @@ class MainActivity : AppCompatActivity() {
         stopProgressUpdates()
         unregisterNoisyReceiver()
         releasePlayer()
+        textToSpeech?.shutdown()
+        textToSpeech = null
         super.onDestroy()
+    }
+
+    private enum class AudioMode {
+        None,
+        Stream,
+        TextToSpeech
     }
 
     private enum class PlaybackState {
@@ -484,8 +635,7 @@ class MainActivity : AppCompatActivity() {
         Playing,
         Paused,
         Completed,
-        Error,
-        NoAudio
+        Error
     }
 
     private companion object {

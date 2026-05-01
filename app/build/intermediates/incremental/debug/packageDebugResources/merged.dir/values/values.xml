@@ -12,7 +12,6 @@
     <color name="textSecondary">#5B6761</color>
     <color name="white">#FFFFFFFF</color>
     <string name="app_name">Dua Player</string>
-    <string name="cd_audio_unavailable">Audio unavailable for this dua</string>
     <string name="cd_dua_picker">Choose a dua</string>
     <string name="cd_next">Next dua</string>
     <string name="cd_pause">Pause dua</string>
@@ -30,10 +29,12 @@
     <string name="playback_finished">Finished.</string>
     <string name="playback_idle">Select a dua to begin.</string>
     <string name="playback_loading">Loading audio...</string>
-    <string name="playback_no_audio">Text-only dua. Audio has not been added yet.</string>
     <string name="playback_paused">Paused.</string>
     <string name="playback_playing">Playing.</string>
     <string name="playback_ready">Ready to play.</string>
+    <string name="playback_tts_error">Text-to-speech audio is unavailable on this device.</string>
+    <string name="playback_tts_loading">Preparing text-to-speech audio...</string>
+    <string name="playback_tts_ready">Text-to-speech audio ready.</string>
     <string name="section_count_format">%1$d duas in this section</string>
     <string name="source_format">Source: %1$s</string>
     <string name="time_zero">0:00</string>

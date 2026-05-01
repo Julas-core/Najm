@@ -3846,7 +3846,6 @@ string call_notification_hang_up_action
 string call_notification_incoming_text
 string call_notification_ongoing_text
 string call_notification_screening_text
-string cd_audio_unavailable
 string cd_dua_picker
 string cd_next
 string cd_pause
@@ -3981,10 +3980,12 @@ string playback_error
 string playback_finished
 string playback_idle
 string playback_loading
-string playback_no_audio
 string playback_paused
 string playback_playing
 string playback_ready
+string playback_tts_error
+string playback_tts_loading
+string playback_tts_ready
 string search_menu_title
 string searchbar_scrolling_view_behavior
 string searchview_clear_text_content_description
