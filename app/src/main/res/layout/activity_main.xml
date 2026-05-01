@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".MainActivity">
+
+    <ScrollView
+        android:id="@+id/contentScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/playerPanel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/chooseDuaLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:labelFor="@id/duaPicker"
+                android:text="@string/choose_dua"
+                android:textColor="@color/textSecondary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/duaPicker"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="6dp"
+                android:backgroundTint="@color/primary"
+                android:contentDescription="@string/cd_dua_picker"
+                android:spinnerMode="dropdown" />
+
+            <TextView
+                android:id="@+id/duaCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:background="@color/accentSoft"
+                android:paddingStart="10dp"
+                android:paddingTop="5dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="5dp"
+                android:textColor="@color/accentDark"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="Morning and evening" />
+
+            <TextView
+                android:id="@+id/duaTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="@color/textPrimary"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                tools:text="Morning reliance" />
+
+            <TextView
+                android:id="@+id/duaSource"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/textSecondary"
+                android:textSize="14sp"
+                tools:text="Source: Hisn al-Muslim" />
+
+            <TextView
+                android:id="@+id/duaArabic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:gravity="end"
+                android:lineSpacingExtra="8dp"
+                android:textColor="@color/textPrimary"
+                android:textDirection="rtl"
+                android:textSize="27sp"
+                tools:text="يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ" />
+
+            <TextView
+                android:id="@+id/transliterationLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="@string/transliteration"
+                android:textColor="@color/textSecondary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/duaTransliteration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="4dp"
+                android:textColor="@color/textPrimary"
+                android:textSize="17sp"
+                tools:text="Yaa Hayyu yaa Qayyoomu..." />
+
+            <TextView
+                android:id="@+id/translationLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/translation"
+                android:textColor="@color/textSecondary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/duaTranslation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="4dp"
+                android:textColor="@color/textPrimary"
+                android:textSize="17sp"
+                tools:text="O Ever-Living, O Sustainer..." />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/playerPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:elevation="10dp"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ProgressBar
+            android:id="@+id/loadingIndicator"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/playback_idle"
+            android:textColor="@color/textSecondary"
+            android:textSize="13sp" />
+
+        <SeekBar
+            android:id="@+id/progressSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:contentDescription="@string/cd_seekbar"
+            android:progressTint="@color/primary"
+            android:thumbTint="@color/primary" />
+
+        <LinearLayout
+            android:id="@+id/timeRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/currentTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/time_zero"
+                android:textColor="@color/textSecondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/durationTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/time_zero"
+                android:textColor="@color/textSecondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/playerControls"
+            android:layout_width="match_parent"
+            android:layout_height="76dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnPrevious"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_previous"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@android:drawable/ic_media_previous"
+                android:tint="@color/primary" />
+
+            <ImageButton
+                android:id="@+id/btnRestart"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_restart"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@android:drawable/ic_menu_revert"
+                android:tint="@color/primary" />
+
+            <ImageButton
+                android:id="@+id/btnPlayPause"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_play"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@android:drawable/ic_media_play"
+                android:tint="@color/primaryDark" />
+
+            <ImageButton
+                android:id="@+id/btnNext"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_next"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@android:drawable/ic_media_next"
+                android:tint="@color/primary" />
+
+            <ImageButton
+                android:id="@+id/btnRepeat"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="4dp"
+                android:alpha="0.45"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_repeat_off"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@android:drawable/ic_menu_rotate"
+                android:tint="@color/accentDark" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
