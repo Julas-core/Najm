@@ -15,7 +15,7 @@ do
 done
 
 APP_HOME=$(cd "${APP_HOME:-./}" && pwd -P) || exit
-CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar:$APP_HOME/gradle/wrapper/gradle-wrapper-shared.jar
 
 if [ -n "$JAVA_HOME" ]; then
     JAVA_EXE=$JAVA_HOME/bin/java
