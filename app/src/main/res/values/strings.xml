@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dua Player</string>
+    <string name="choose_section">Choose a section</string>
     <string name="choose_dua">Choose a dua</string>
     <string name="transliteration">Transliteration</string>
     <string name="translation">Translation</string>
     <string name="source_format">Source: %1$s</string>
+    <string name="section_count_format">%1$d duas in this section</string>
     <string name="time_zero">0:00</string>
 
     <string name="playback_idle">Select a dua to begin.</string>
@@ -14,7 +16,9 @@
     <string name="playback_paused">Paused.</string>
     <string name="playback_finished">Finished.</string>
     <string name="playback_error">Audio could not be loaded. Tap play to retry.</string>
+    <string name="playback_no_audio">Text-only dua. Audio has not been added yet.</string>
 
+    <string name="cd_section_picker">Choose a dua section</string>
     <string name="cd_dua_picker">Choose a dua</string>
     <string name="cd_seekbar">Audio progress</string>
     <string name="cd_previous">Previous dua</string>
@@ -22,6 +26,7 @@
     <string name="cd_play">Play dua</string>
     <string name="cd_pause">Pause dua</string>
     <string name="cd_retry">Retry loading audio</string>
+    <string name="cd_audio_unavailable">Audio unavailable for this dua</string>
     <string name="cd_next">Next dua</string>
     <string name="cd_repeat_on">Repeat is on</string>
     <string name="cd_repeat_off">Repeat is off</string>

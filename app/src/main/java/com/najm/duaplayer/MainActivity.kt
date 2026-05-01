@@ -23,9 +23,12 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var audioManager: AudioManager
+    private lateinit var duaAdapter: ArrayAdapter<String>
 
     private var mediaPlayer: MediaPlayer? = null
     private var audioFocusRequest: AudioFocusRequest? = null
+    private var visibleDuas: List<Dua> = emptyList()
+    private var selectedSectionIndex = -1
     private var selectedIndex = -1
     private var playbackState = PlaybackState.Idle
     private var repeatEnabled = false
@@ -63,63 +66,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val duas = listOf(
-        Dua(
-            title = "Morning reliance",
-            category = "Morning and evening",
-            arabic = "يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ، وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ",
-            transliteration = "Yaa Hayyu yaa Qayyoomu, bi rahmatika astagheeth, aslih lee sha'nee kullahu, wa laa takilnee ilaa nafsee tarfata 'ayn.",
-            translation = "O Ever-Living, O Sustainer, by Your mercy I seek help. Set right all of my affairs, and do not leave me to myself even for the blink of an eye.",
-            source = "Hisn al-Muslim; Al-Hakim 1/545",
-            audioUrl = "https://salafiaudio.files.wordpress.com/2015/07/hisn-al-muslim-audio-dua-88.mp3"
-        ),
-        Dua(
-            title = "Protection from harm",
-            category = "Morning and evening",
-            arabic = "أَعُوذُ بِكَلِمَاتِ اللهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
-            transliteration = "A'oodhu bi kalimaatil-laahit-taammaati min sharri maa khalaq.",
-            translation = "I seek protection in the perfect words of Allah from the evil of what He has created.",
-            source = "Sahih Muslim 2709; At-Tirmidhi 3898",
-            audioUrl = "https://salafiaudio.files.wordpress.com/2015/07/seeking-refuge-in-the-perfect-words-of-allaah-authentic-dua-com.mp3"
-        ),
-        Dua(
-            title = "Safeguard faith and life",
-            category = "Comprehensive",
-            arabic = "اللَّهُمَّ أَصْلِحْ لِي دِينِي الَّذِي هُوَ عِصْمَةُ أَمْرِي، وَأَصْلِحْ لِي دُنْيَايَ الَّتِي فِيهَا مَعَاشِي، وَأَصْلِحْ لِي آخِرَتِي الَّتِي فِيهَا مَعَادِي",
-            transliteration = "Allahumma aslih lee deenee alladhi huwa 'ismatu amree, wa aslih lee dunyaaya allatee feehaa ma'aashee, wa aslih lee aakhiratee allatee feehaa ma'aadee.",
-            translation = "O Allah, set right my religion, which safeguards my affairs; set right my worldly life, wherein is my living; and set right my next life, to which is my return.",
-            source = "Sahih Muslim 2720",
-            audioUrl = "https://salafiaudio.files.wordpress.com/2015/10/o-allaah-safeguard-my-deen-dunya-and-aakhira.mp3"
-        ),
-        Dua(
-            title = "Ruqyah for healing",
-            category = "Health",
-            arabic = "بِسْمِ اللهِ أَرْقِيكَ، مِنْ كُلِّ شَيْءٍ يُؤْذِيكَ، مِنْ شَرِّ كُلِّ نَفْسٍ أَوْ عَيْنِ حَاسِدٍ، اللهُ يَشْفِيكَ، بِسْمِ اللهِ أَرْقِيكَ",
-            transliteration = "Bismillaahi arqeek, min kulli shay'in yu'dheek, min sharri kulli nafsin aw 'aynin haasid, Allaahu yashfeek, bismillaahi arqeek.",
-            translation = "In the name of Allah, I recite over you from everything that harms you, from the evil of every soul or envious eye. May Allah heal you.",
-            source = "Sahih Muslim 2186",
-            audioUrl = "https://salafiaudio.files.wordpress.com/2015/10/bismillahi-arqeek-min-kulli-shay_in-yu_dheek.mp3"
-        ),
-        Dua(
-            title = "Forgiveness and protection",
-            category = "Quranic",
-            arabic = "رَبَّنَا إِنَّنَا آمَنَّا فَاغْفِرْ لَنَا ذُنُوبَنَا وَقِنَا عَذَابَ النَّارِ",
-            transliteration = "Rabbanaa innanaa aamannaa faghfir lanaa dhunoobanaa wa qinaa 'adhaaban-naar.",
-            translation = "Our Lord, we have indeed believed, so forgive us our sins and protect us from the punishment of the Fire.",
-            source = "Quran 3:16",
-            audioUrl = "https://salafiaudio.files.wordpress.com/2015/07/quranic-dua-003016-our-lord-we-have-indeed-believed-so-forgive-us.mp3"
-        ),
-        Dua(
-            title = "When feeling pain",
-            category = "Health",
-            arabic = "بِسْمِ اللهِ، أَعُوذُ بِاللهِ وَقُدْرَتِهِ مِنْ شَرِّ مَا أَجِدُ وَأُحَاذِرُ",
-            transliteration = "Bismillaah. A'oodhu billaahi wa qudratihi min sharri maa ajidu wa uhaadhir.",
-            translation = "In the name of Allah. I seek refuge in Allah and His power from the evil of what I feel and fear.",
-            source = "Sahih Muslim 2202",
-            audioUrl = "https://salafiaudio.files.wordpress.com/2015/07/the-duaa-when-a-person-feels-pain-in-their-body-authentic-dua-com.mp3"
-        )
-    )
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -127,22 +73,42 @@ class MainActivity : AppCompatActivity() {
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        setupDuaPicker()
+        setupPickers()
         setupControls()
         registerNoisyReceiver()
-        selectDua(0)
+        selectSection(0)
     }
 
-    private fun setupDuaPicker() {
-        val adapter = ArrayAdapter(
+    private fun setupPickers() {
+        val sectionAdapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
-            duas.map { it.title }
+            DuaCatalog.sections
         ).apply {
             setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         }
 
-        binding.duaPicker.adapter = adapter
+        duaAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            mutableListOf<String>()
+        ).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+
+        binding.sectionPicker.adapter = sectionAdapter
+        binding.duaPicker.adapter = duaAdapter
+
+        binding.sectionPicker.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position != selectedSectionIndex) {
+                    selectSection(position, autoPlay = playbackState == PlaybackState.Playing)
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+
         binding.duaPicker.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (position != selectedIndex) {
@@ -158,7 +124,8 @@ class MainActivity : AppCompatActivity() {
         binding.btnPlayPause.setOnClickListener {
             when (playbackState) {
                 PlaybackState.Playing -> pauseAudio()
-                PlaybackState.Loading -> Unit
+                PlaybackState.Loading,
+                PlaybackState.NoAudio -> Unit
                 PlaybackState.Error -> selectDua(selectedIndex.coerceAtLeast(0))
                 else -> playAudio()
             }
@@ -169,7 +136,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnPrevious.setOnClickListener {
-            val previousIndex = if (selectedIndex <= 0) duas.lastIndex else selectedIndex - 1
+            if (visibleDuas.isEmpty()) return@setOnClickListener
+            val previousIndex = if (selectedIndex <= 0) visibleDuas.lastIndex else selectedIndex - 1
             selectDua(previousIndex, autoPlay = playbackState == PlaybackState.Playing)
         }
 
@@ -201,22 +169,37 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun selectSection(index: Int, autoPlay: Boolean = false) {
+        if (index !in DuaCatalog.sections.indices) return
+
+        selectedSectionIndex = index
+        visibleDuas = DuaCatalog.duasFor(DuaCatalog.sections[index])
+
+        binding.sectionCount.text = getString(R.string.section_count_format, visibleDuas.size)
+        duaAdapter.clear()
+        duaAdapter.addAll(visibleDuas.map { it.title })
+        duaAdapter.notifyDataSetChanged()
+
+        selectedIndex = -1
+        selectDua(0, autoPlay = autoPlay)
+    }
+
     private fun selectDua(index: Int, autoPlay: Boolean = false) {
-        if (index !in duas.indices) return
+        if (index !in visibleDuas.indices) return
 
         stopProgressUpdates()
         releasePlayer()
         playWhenPrepared = autoPlay
 
         selectedIndex = index
-        val dua = duas[index]
+        val dua = visibleDuas[index]
 
         if (binding.duaPicker.selectedItemPosition != index) {
             binding.duaPicker.setSelection(index)
         }
 
         binding.duaTitle.text = dua.title
-        binding.duaCategory.text = dua.category
+        binding.duaCategory.text = dua.section
         binding.duaArabic.text = dua.arabic
         binding.duaTransliteration.text = dua.transliteration
         binding.duaTranslation.text = dua.translation
@@ -230,6 +213,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun preparePlayer(dua: Dua) {
+        val audioUrl = dua.audioUrl
+        if (audioUrl.isNullOrBlank()) {
+            playWhenPrepared = false
+            setPlaybackState(PlaybackState.NoAudio)
+            return
+        }
+
         setPlaybackState(PlaybackState.Loading)
 
         try {
@@ -240,7 +230,7 @@ class MainActivity : AppCompatActivity() {
                         .setUsage(AudioAttributes.USAGE_MEDIA)
                         .build()
                 )
-                setDataSource(dua.audioUrl)
+                setDataSource(audioUrl)
                 setOnPreparedListener { player ->
                     binding.progressSeekBar.max = player.duration
                     binding.durationTime.text = formatDuration(player.duration)
@@ -314,7 +304,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playNextDua() {
-        val nextIndex = if (selectedIndex >= duas.lastIndex) 0 else selectedIndex + 1
+        if (visibleDuas.isEmpty()) return
+        val nextIndex = if (selectedIndex >= visibleDuas.lastIndex) 0 else selectedIndex + 1
         selectDua(nextIndex, autoPlay = playbackState == PlaybackState.Playing)
     }
 
@@ -388,10 +379,18 @@ class MainActivity : AppCompatActivity() {
     private fun setPlaybackState(state: PlaybackState) {
         playbackState = state
 
+        val canUseAudio = state != PlaybackState.Loading &&
+            state != PlaybackState.Error &&
+            state != PlaybackState.NoAudio
+
         binding.loadingIndicator.visibility = if (state == PlaybackState.Loading) View.VISIBLE else View.GONE
-        binding.btnPlayPause.isEnabled = state != PlaybackState.Loading
-        binding.btnRestart.isEnabled = state != PlaybackState.Loading && state != PlaybackState.Error
-        binding.progressSeekBar.isEnabled = state != PlaybackState.Loading && state != PlaybackState.Error
+        binding.btnPlayPause.isEnabled = state != PlaybackState.Loading && state != PlaybackState.NoAudio
+        binding.btnRestart.isEnabled = canUseAudio
+        binding.btnRepeat.isEnabled = canUseAudio
+        binding.progressSeekBar.isEnabled = canUseAudio
+        binding.btnPlayPause.alpha = if (state == PlaybackState.NoAudio) DISABLED_ALPHA else FULL_ALPHA
+        binding.btnRestart.alpha = if (canUseAudio) FULL_ALPHA else DISABLED_ALPHA
+        binding.btnRepeat.alpha = if (repeatEnabled && canUseAudio) FULL_ALPHA else DISABLED_ALPHA
 
         binding.btnPlayPause.setImageResource(
             if (state == PlaybackState.Playing) {
@@ -409,17 +408,20 @@ class MainActivity : AppCompatActivity() {
             PlaybackState.Paused -> getString(R.string.playback_paused)
             PlaybackState.Completed -> getString(R.string.playback_finished)
             PlaybackState.Error -> getString(R.string.playback_error)
+            PlaybackState.NoAudio -> getString(R.string.playback_no_audio)
         }
 
         binding.btnPlayPause.contentDescription = when (state) {
             PlaybackState.Playing -> getString(R.string.cd_pause)
             PlaybackState.Error -> getString(R.string.cd_retry)
+            PlaybackState.NoAudio -> getString(R.string.cd_audio_unavailable)
             else -> getString(R.string.cd_play)
         }
     }
 
     private fun updateRepeatUI() {
-        binding.btnRepeat.alpha = if (repeatEnabled) FULL_ALPHA else DISABLED_ALPHA
+        val audioAvailable = playbackState != PlaybackState.NoAudio && playbackState != PlaybackState.Error
+        binding.btnRepeat.alpha = if (repeatEnabled && audioAvailable) FULL_ALPHA else DISABLED_ALPHA
         binding.btnRepeat.contentDescription = if (repeatEnabled) {
             getString(R.string.cd_repeat_on)
         } else {
@@ -475,16 +477,6 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private data class Dua(
-        val title: String,
-        val category: String,
-        val arabic: String,
-        val transliteration: String,
-        val translation: String,
-        val source: String,
-        val audioUrl: String
-    )
-
     private enum class PlaybackState {
         Idle,
         Loading,
@@ -492,7 +484,8 @@ class MainActivity : AppCompatActivity() {
         Playing,
         Paused,
         Completed,
-        Error
+        Error,
+        NoAudio
     }
 
     private companion object {
